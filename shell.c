@@ -19,7 +19,16 @@ int main() {
       i++;
     }
     command[i] = NULL;
-    execvp(command[0], command);
+
+    int f = fork();
+
+    if (f == 0 ) {
+      execvp(command[0], command);
+    } else {
+      wait(&f);
+    }
+
+
   }
 
 
