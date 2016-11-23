@@ -9,6 +9,7 @@
 void execute(char *args[]) {
   int f = fork();
   if ( f == 0 )
+    //execlp(a, b, c);
     execvp(args[0], args);
   else
     wait(&f);
@@ -35,7 +36,7 @@ char ** split(char input[], char delimiter[]) {
 }
 */
 
-    
+/*SPACE BUG*/    
 int main() {
 
   while ( 1 ) {
@@ -44,32 +45,54 @@ int main() {
     fgets(input, sizeof(input), stdin);
     *strchr(input, '\n') = 0; // get rid of newline
 
-    char *commands[1000];
-    char *t = input;
-    
-    
-    while ( t != NULL ) {
-      char *s=strsep(&t, ";");
-      // another while loop to run individual
-      char *command[1000];
-      
-      int i = 0;
-      while ( s != NULL ) {
-      command[i] = strsep(&s, " ");
+    char *commands[1000]; // list of commands separated by semicolons
+    char *s = input;
+    // split commands by semicolon
+    int i = 0;
+    while ( s != NULL ) {
+      commands[i] = strsep(&s, ";");
       i++;
+    }
+    commands[i] = NULL;
+
+    // for each command in list of commands
+    int j = 0;
+    for (; commands[j] != NULL; j++) {
+      
+      char * command[1000];
+      char *t = commands[j];
+      // split args by spaces
+      int k = 0;
+      while ( t != NULL ) {
+	command[k] = strsep(&t, " ");
+	k++;
       }
-      command[i] = NULL;
-    
- 
-	//char ** command = split(input, " ");
+      command[k] = NULL;
+
+      int l;
+      for ( l = 0; command[l] != NULL; l++ )
+	printf("%d, ", *command[l]);
+      printf("\n");
+      /*
+      // do not pass leading spaces
+      int l;
+      for ( l = 0; command[l] == NULL; l++ );
+      execute(command);
+      */
+    } 
+  }
+  
+  return 0;
+}
+
+
+
+
+//char ** command = split(input, " ");
     /*
       if( (!strcmp(command[0], "exit")) || (!strcmp(command[0], "cd"))){
       execvp(command[0], command);
       }
     */
-    execute(command);
+    //    execute(command);
 
-  }
-  
-return 0;
-}
