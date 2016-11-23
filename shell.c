@@ -44,19 +44,19 @@ int main() {
     char *commands[1000];
     char *t = input;
 
-
+    
     while ( t != NULL ) {
       char *s=strsep(&t, ";");
       // another while loop to run individual
       char *command[1000];
-	    
+      
       int i = 0;
       while ( s != NULL ) {
 	command[i] = strsep(&s, " ");
 	i++;
       }
       command[i] = NULL;
-
+    
 
     /*
     if( (!strcmp(command[0], "exit")) || (!strcmp(command[0], "cd"))){
