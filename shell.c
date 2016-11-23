@@ -15,7 +15,7 @@ void execute(char *args[]) {
 }
 
 
-/*
+
 // takes a string of characters
 // splits them based on a given delimiter
 // returns an array of split strings
@@ -26,6 +26,7 @@ char ** split(char input[], char delimiter[]) {
   int i = 0;
   while ( t != NULL ) {
     ret[i] = strsep(&t, delimiter);
+    printf("%s\n", ret[i]);
     i++;
   }
   *ret[i] = 0;
@@ -33,7 +34,7 @@ char ** split(char input[], char delimiter[]) {
   return ret;
 
 }
-*/
+
 
     
 int main() {
@@ -49,27 +50,19 @@ int main() {
     
     
     while ( t != NULL ) {
-      char *s=strsep(&t, ";");
+      //char *s=strsep(&t, ";");
       // another while loop to run individual
-      char *command[1000];
-      
-      int i = 0;
-      while ( s != NULL ) {
-      command[i] = strsep(&s, " ");
-      i++;
-      }
-      command[i] = NULL;
-    
- 
-	//char ** command = split(input, " ");
+        printf("testttttt1\n");  
+      char ** command = split(input, " ");
+      break;
     /*
       if( (!strcmp(command[0], "exit")) || (!strcmp(command[0], "cd"))){
       execvp(command[0], command);
       }
     */
-    execute(command);
+    //execute(command);
 
   }
   
 return 0;
-}
+  }}
