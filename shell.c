@@ -3,12 +3,18 @@
 #include <unistd.h>
 #include <string.h>
 
-
-// takes an array of parsed arguments
-// forks a child process to execute these arguments, waits
+/**************************************
+EXECUTE: forks child to exec command, waits
+* Input:
+    > args: array of char pointers
+        > args[0] is command
+        > args[1] and on are args
+* Output: void
+**************************************/
 void execute(char *args[]) {
   int f = fork();
   if ( f == 0 )
+    //execlp(a, b, c);
     execvp(args[0], args);
   else
     wait(&f);
@@ -16,9 +22,14 @@ void execute(char *args[]) {
 
 
 
-// takes a string of characters
-// splits them based on a given delimiter
-// returns an array of split strings
+/**************************************
+SPLIT: splits input str on given delimiter
+* Input:
+    > input: string to parse
+    > delimiter: i wonder what this is
+* Output:
+    > "array" of pointers to split strings 
+**************************************/
 char ** split(char input[], char delimiter[]) {
   char ** ret = (char **) malloc(1000);
   char *t = input;
@@ -28,42 +39,47 @@ char ** split(char input[], char delimiter[]) {
     ret[i] = strsep(&t, delimiter);
     i++;
   }
-
-  ret[i] = 0; //null term for exec
+  ret[i] = 0; //null term for both exec and cmd parsing
 
   return ret;
 }
 
 
-    
+
 int main() {
 
   while ( 1 ) {
     printf(">>> ");
     char input[1000];
     fgets(input, sizeof(input), stdin);
-    *strchr(input, '\n') = 0; // get rid of newline
+    *strchr(input, '\n') = 0; //get rid of newline
 
-    char *commands[1000];
+    char **commands = (char **) malloc(1000);  //list of commands separated by semicolons
     char *t = input;
-        
-      //char *s=strsep(&t, ";");
-      // another while loop to run individual
-      char ** command = split(input, " ");
-    
+    commands = split(input, ";");
+ 
+    int i;
+    for (i = 0; commands[i] != NULL; i++) { 
+      
+      char ** command = split(commands[i], " ");
+      
       if( !strcmp(command[0], "exit") ) {
 	printf("Exiting shell...\n");
 	exit(0);
 
       } else if ( !strcmp(command[0], "cd") ) {
-	//do sometihng here
+	//do something here
 	execvp(command[0], command);
 
       } else {
+	printf("COMMAND: %s\n", command[0]);
+	printf("FIRST ARG: %s\n", command[1]);
 	execute(command);
       }
-
-
     }  
-    return 0;
   }
+
+  //FREE STUFF LATER
+
+  return 0;
+}
