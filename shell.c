@@ -69,16 +69,11 @@ int main() {
       }
       command[k] = NULL;
 
-      int l;
-      for ( l = 0; command[l] != NULL; l++ )
-	printf("%d, ", *command[l]);
-      printf("\n");
-      /*
       // do not pass leading spaces
       int l;
-      for ( l = 0; command[l] == NULL; l++ );
-      execute(command);
-      */
+      for ( l = 0; *command[l] == 0; l++ );
+      execute(&command[l]);
+      
     } 
   }
   
