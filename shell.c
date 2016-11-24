@@ -26,13 +26,12 @@ char ** split(char input[], char delimiter[]) {
   int i = 0;
   while ( t != NULL ) {
     ret[i] = strsep(&t, delimiter);
-    printf("%s\n", ret[i]);
     i++;
   }
-  *ret[i] = 0;
+
+  ret[i] = 0; //null term for exec
 
   return ret;
-
 }
 
 
@@ -47,22 +46,24 @@ int main() {
 
     char *commands[1000];
     char *t = input;
-    
-    
-    while ( t != NULL ) {
+        
       //char *s=strsep(&t, ";");
       // another while loop to run individual
-        printf("testttttt1\n");  
       char ** command = split(input, " ");
-      break;
-    /*
-      if( (!strcmp(command[0], "exit")) || (!strcmp(command[0], "cd"))){
-      execvp(command[0], command);
-      }
-    */
-    //execute(command);
+    
+      if( !strcmp(command[0], "exit") ) {
+	printf("Exiting shell...\n");
+	exit(0);
 
+      } else if ( !strcmp(command[0], "cd") ) {
+	//do sometihng here
+	execvp(command[0], command);
+
+      } else {
+	execute(command);
+      }
+
+
+    }  
+    return 0;
   }
-  
-return 0;
-  }}
