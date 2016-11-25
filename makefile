@@ -1,4 +1,5 @@
 make: shell.c
+	gcc shell.h
 	gcc shell.c -o shell.out
 
 run: make

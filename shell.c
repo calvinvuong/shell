@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "shell.h"
 /*******************************************
 EXECUTE: forks child to exec command, waits
 * Input:
@@ -12,9 +13,19 @@ EXECUTE: forks child to exec command, waits
 	* Output: void
 	********************************************/
 void execute(char *args[]) {
+  // custom command handling
+  if( !strcmp(args[0], "exit") ) { 
+      printf("Exiting shell...\n");
+      exit(0);
+    }
+  else if ( !strcmp(args[0], "cd") ) {
+    chdir(args[1]);
+    return;
+  }
+
+  // regular command handling
   int f = fork();
-  if ( f == 0 )
-    //execlp(a, b, c);
+  if ( f == 0 ) 
     execvp(args[0], args);
   else
     wait(&f);
@@ -92,6 +103,7 @@ int main() {
 	printf("\tARG 2: (%s)\n", command[2]);
       */      
 
+      /*
       if( !strcmp(command[0], "exit") ) {
 	printf("Exiting shell...\n");
 	exit(0);
@@ -101,7 +113,9 @@ int main() {
       } else {
 	execute(command);
       }
-
+      */
+      execute(command);
+      
       free(command_nonsplit);
       free(command);
       command_nonsplit = NULL;
