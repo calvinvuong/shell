@@ -97,9 +97,7 @@ int main() {
 	exit(0);
 
       } else if ( !strcmp(command[0], "cd") ) {
-	//do something here
-	execvp(command[0], command);
-
+	chdir(command[1]);
       } else {
 	execute(command);
       }
