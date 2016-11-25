@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "shell.h"
 /*******************************************
@@ -25,14 +26,47 @@ void execute(char *args[]) {
 
   // regular command handling
   int f = fork();
-  if ( f == 0 ) 
-    execvp(args[0], args);
+  if ( f == 0 )  {
+    
+    if ( find_str_in_array(args, ">") != -1 )
+      redirect_out(args);
+    else if ( find_str_in_array(args, "<") != -1 )
+      redirect_in(args);
+    else
+      execvp(args[0], args);
+  }
   else
     wait(&f);
 }
 
+void redirect_out(char *args[]) {
+  int arrow_pos = find_str_in_array(args, ">"); // position of > in args
+  char *file_name = args[ arrow_pos + 1 ];
+  
+  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+  dup2(fd, 1); // redirect sdout to file_name
+  close(fd);
+
+  args[arrow_pos] = 0; // null terminate
+  execvp(args[0], args);
+  
+}
 
 
+void redirect_in(char *args[]) {};
+
+// finds if specified string is in a null-terminated  array of strings
+// returns pos if there; -1 if does not exist
+int find_str_in_array(char *arr[], char str[]) {
+  int i;
+  for ( i = 0; arr[i] != NULL; i++ ) {
+    if ( strcmp( str, arr[i] ) == 0 )
+      return i;
+  }
+  return -1;
+}
+    
+  
 /******************************************
 SPLIT: splits input str on given delimiter
 * Input:
@@ -133,6 +167,7 @@ int main() {
 	execute(command);
       }
       */
+
       execute(command);
       
       free(command_nonsplit);
