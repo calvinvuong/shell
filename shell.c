@@ -75,11 +75,30 @@ char * whitespaceBeGone( char * input ) {
   return newStr;
 }
 
+/**************************************************************************
+PRINTDIR: prints the current working directory as seen in the shell prompt
+**************************************************************************/
+void printdir() {
+  char username[100];
+  char dir[500];
+  //char short_dir[500]; // uses ~ as an abbreivation
+  
+  getlogin_r(username, 100); // puts login name in username
+  getcwd(dir, 500);
+
+  if ( strstr(dir, username) == 0 ) // cwd is above home dir
+    printf("%s$ ", dir);
+  else {
+    printf("~/%s$ ", strstr(dir, username));
+  }
+}
+
 
 int main() {
 
   while ( 1 ) {
-    printf(">>> ");
+    //printf(">>> ");
+    printdir();
     char input[1000];
     fgets(input, sizeof(input), stdin);
     *strchr(input, '\n') = 0; //get rid of newline
