@@ -29,6 +29,8 @@ void execute(char *args[]) {
       redirect_out(args);
     else if ( find_str_in_array(args, "<") != -1 )
       redirect_in(args);
+    else if ( find_str_in_array(args, "|") != -1 )
+      pipe_command(args);
     else
       execvp(args[0], args);
   }
