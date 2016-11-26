@@ -44,7 +44,7 @@ void redirect_out(char *args[]) {
   char *file_name = args[ arrow_pos + 1 ];
   
   int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-  dup2(fd, 1); // redirect sdout to file_name
+  dup2(fd, 1); // redirect stdout to file_name
   close(fd);
 
   args[arrow_pos] = 0; // null terminate
@@ -52,8 +52,17 @@ void redirect_out(char *args[]) {
   
 }
 
+void redirect_in(char *args[]) {
+  int arrow_pos = find_str_in_array(args, "<"); // positon of < in args
+  char *file_name = args[ arrow_pos + 1 ];
 
-void redirect_in(char *args[]) {};
+  int fd = open(file_name, O_RDONLY);
+  dup2(fd, 0); // redirect stdin to file_name
+  close(fd);
+
+  args[arrow_pos] = 0; // null terminate
+  execvp(args[0], args);
+}
 
 // finds if specified string is in a null-terminated  array of strings
 // returns pos if there; -1 if does not exist
