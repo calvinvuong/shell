@@ -43,7 +43,7 @@ void redirect_out(char *args[]) {
   int arrow_pos = find_str_in_array(args, ">"); // position of > in args
   char *file_name = args[ arrow_pos + 1 ];
   
-  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);  
   dup2(fd, 1); // redirect stdout to file_name
   close(fd);
 
@@ -57,6 +57,11 @@ void redirect_in(char *args[]) {
   char *file_name = args[ arrow_pos + 1 ];
 
   int fd = open(file_name, O_RDONLY);
+  if ( fd == -1 ) { // file does not exist
+    printf("%s: No such file\n", file_name);
+    return;
+  }
+
   dup2(fd, 0); // redirect stdin to file_name
   close(fd);
 
