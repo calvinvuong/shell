@@ -1,12 +1,5 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
 #include "shell.h"
+
 /*******************************************
 EXECUTE: forks child to exec command, waits
 * Input:
@@ -14,13 +7,13 @@ EXECUTE: forks child to exec command, waits
         > args[0] is command
         > args[1] and on are args
 	* Output: void
-********************************************/
+	********************************************/
 void execute(char *args[]) {
   // custom command handling
   if( !strcmp(args[0], "exit") ) { 
-      printf("Exiting shell...\n");
-      exit(0);
-    }
+    printf("Exiting shell...\n");
+    exit(0);
+  }
   else if ( !strcmp(args[0], "cd") ) {
     chdir(args[1]);
     return;
@@ -43,17 +36,17 @@ void execute(char *args[]) {
     wait(&f);
 }
 
-/****************************************
+/***************************************************************************
 REDIRECT_OUT: handles command execution if there is a redirection of output
 * Input: args is an array of char pointers that represent commands
          the redirection character > is an element of args
-************************************/
+****************************************************************************/
 void redirect_out(char *args[]) {
   int arrow_pos = find_str_in_array(args, ">"); // position of > in args
   char *file_name = args[ arrow_pos + 1 ];
   
   int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);  
-  dup2(fd, 1); // redirect stdout to file_name
+  dup2(fd, STDOUT_FILENO); // redirect stdout to file_name
   close(fd);
 
   args[arrow_pos] = 0; // null terminate
@@ -61,11 +54,11 @@ void redirect_out(char *args[]) {
   
 }
 
-/****************************************
+/*************************************************************************
 REDIRECT_IN: handles command execution if there is a redirection of input
 * Input: args is an array of char pointers that represent commands
          the redirection character < is an element of args
-************************************/
+**************************************************************************/
 void redirect_in(char *args[]) {
   int arrow_pos = find_str_in_array(args, "<"); // positon of < in args
   char *file_name = args[ arrow_pos + 1 ];
@@ -76,18 +69,35 @@ void redirect_in(char *args[]) {
     return;
   }
 
-  dup2(fd, 0); // redirect stdin to file_name
+  dup2(fd, STDIN_FILENO); // redirect stdin to file_name
   close(fd);
 
   args[arrow_pos] = 0; // null terminate
   execvp(args[0], args);
 }
 
-/************************************************
+/*************************************************************************
+PIPE_COMMAND: handles command execution if there is a piping of output
+* Input: args is an array of char pointers that represent commands
+         the pipe character | is an element of args
+**************************************************************************/
+void pipe_command(char *args[]) {
+  int pipe_pos = find_str_in_array(args, "|"); // positon of | in args
+  char ** cmd2 = &(args[pipe_pos + 1]);
+
+  args[pipe_pos] = 0; // null terminate
+  execvp(args[0], args);
+
+  dup2(STDIN_FILENO, STDOUT_FILENO); // redirect stdout to stdin
+  execvp(cmd2[0], cmd2);
+}
+
+
+/************************************************************
 STORE_HISTORY: updates file ~/.custom_shell_history with str
 * Input: str is the command to be stored in history
          num is the chronological command order
-************************************************/
+*************************************************************/
 void store_history(char *str, int num) {
   char path[1000];
   sprintf(path, "%s/.custom_shell_history", getenv("HOME"));
@@ -105,9 +115,9 @@ void store_history(char *str, int num) {
   close(fd);
 }
 
-/************************************************
+/*************************************************************
 SHOW_HISTORY: prints out history form ~/.custom_shell_history
-************************************************/
+**************************************************************/
 void show_history() {
   char path[1000];
   sprintf(path, "%s/.custom_shell_history", getenv("HOME"));
@@ -125,6 +135,7 @@ void show_history() {
   printf("%s\n",  contents);
 
 }
+
 // finds if specified string is in a null-terminated  array of strings
 // returns pos if there; -1 if does not exist
 int find_str_in_array(char *arr[], char str[]) {
@@ -182,9 +193,7 @@ char * whitespaceBeGone( char * input ) {
 PRINTDIR: prints the current working directory as seen in the shell prompt
 **************************************************************************/
 void printdir() {
-
   char dir[1000];  
-
   getcwd(dir, 1000);
 
   if ( strstr(dir, getenv("HOME")) == 0 ) // if cwd is above home dir
@@ -205,7 +214,7 @@ int main() {
     fgets(input, sizeof(input), stdin);
     *strchr(input, '\n') = 0; //get rid of newline
 
-    // story history
+    // stor4 history
     store_history(input, command_num);
     command_num++;
     
@@ -229,15 +238,15 @@ int main() {
       */      
 
       /*
-      if( !strcmp(command[0], "exit") ) {
+	if( !strcmp(command[0], "exit") ) {
 	printf("Exiting shell...\n");
 	exit(0);
 
-      } else if ( !strcmp(command[0], "cd") ) {
+	} else if ( !strcmp(command[0], "cd") ) {
 	chdir(command[1]);
-      } else {
+	} else {
 	execute(command);
-      }
+	}
       */
 
       execute(command);
