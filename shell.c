@@ -84,12 +84,14 @@ void redirect_in(char *args[]) {
 }
 
 /************************************************
-STORE_HISTORY: updates file .shell_history with str
+STORE_HISTORY: updates file ~/.custom_shell_history with str
 * Input: str is the command to be stored in history
          num is the chronological command order
 ************************************************/
 void store_history(char *str, int num) {
-  int fd = open(".shell_history", O_CREAT | O_WRONLY | O_APPEND, 0600);
+  char path[1000];
+  sprintf(path, "%s/.custom_shell_history", getenv("HOME"));
+  int fd = open(path, O_CREAT | O_WRONLY | O_APPEND, 0600);
 
   // write command #
   char num_str[100];
@@ -104,18 +106,21 @@ void store_history(char *str, int num) {
 }
 
 /************************************************
-SHOW_HISTORY: prints out history form .shell_history
+SHOW_HISTORY: prints out history form ~/.custom_shell_history
 ************************************************/
 void show_history() {
-  int fd = open(".shell_history", O_RDONLY);
+  char path[1000];
+  sprintf(path, "%s/.custom_shell_history", getenv("HOME"));
+  int fd = open(path, O_RDONLY);
   // do not need to check if file does not exist b/c history command creates file anyways
 
   struct stat buf;
-  stat(".shell_history", &buf);
+  stat(path, &buf);
   int size = buf.st_size;
 
-  char contents[size];
+  char contents[size+1];
   read(fd, contents, size);
+  contents[size] = 0; // null terminate
   
   printf("%s\n",  contents);
 
@@ -177,17 +182,15 @@ char * whitespaceBeGone( char * input ) {
 PRINTDIR: prints the current working directory as seen in the shell prompt
 **************************************************************************/
 void printdir() {
-  char username[100];
-  char dir[500];
-  //char short_dir[500]; // uses ~ as an abbreivation
-  
-  getlogin_r(username, 100); // puts login name in username
-  getcwd(dir, 500);
 
-  if ( strstr(dir, username) == 0 ) // cwd is above home dir
+  char dir[1000];  
+
+  getcwd(dir, 1000);
+
+  if ( strstr(dir, getenv("HOME")) == 0 ) // if cwd is above home dir
     printf("%s$ ", dir);
   else {
-    printf("~/%s$ ", strstr(dir, username));
+    printf("~%s$ ", strstr(dir, getenv("HOME")) + strlen(getenv("HOME")));
   }
 }
 
