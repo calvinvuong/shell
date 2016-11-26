@@ -10,6 +10,12 @@ void redirect_in(char *args[]);
 // executes command w/ redirection out
 void redirect_out(char *args[]);
 
+// updates .shell_history
+void store_history(char *str, int num);
+
+// displays history
+void show_history();
+
 // splits input str on given delimeter(s)
 char ** split(char * input, char * delimiter);
 

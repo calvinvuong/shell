@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "shell.h"
 /*******************************************
@@ -12,7 +14,7 @@ EXECUTE: forks child to exec command, waits
         > args[0] is command
         > args[1] and on are args
 	* Output: void
-	********************************************/
+********************************************/
 void execute(char *args[]) {
   // custom command handling
   if( !strcmp(args[0], "exit") ) { 
@@ -23,6 +25,8 @@ void execute(char *args[]) {
     chdir(args[1]);
     return;
   }
+  else if ( !strcmp(args[0], "history") )
+    show_history();
 
   // regular command handling
   int f = fork();
@@ -39,6 +43,11 @@ void execute(char *args[]) {
     wait(&f);
 }
 
+/****************************************
+REDIRECT_OUT: handles command execution if there is a redirection of output
+* Input: args is an array of char pointers that represent commands
+         the redirection character > is an element of args
+************************************/
 void redirect_out(char *args[]) {
   int arrow_pos = find_str_in_array(args, ">"); // position of > in args
   char *file_name = args[ arrow_pos + 1 ];
@@ -52,6 +61,11 @@ void redirect_out(char *args[]) {
   
 }
 
+/****************************************
+REDIRECT_IN: handles command execution if there is a redirection of input
+* Input: args is an array of char pointers that represent commands
+         the redirection character < is an element of args
+************************************/
 void redirect_in(char *args[]) {
   int arrow_pos = find_str_in_array(args, "<"); // positon of < in args
   char *file_name = args[ arrow_pos + 1 ];
@@ -69,6 +83,43 @@ void redirect_in(char *args[]) {
   execvp(args[0], args);
 }
 
+/************************************************
+STORE_HISTORY: updates file .shell_history with str
+* Input: str is the command to be stored in history
+         num is the chronological command order
+************************************************/
+void store_history(char *str, int num) {
+  int fd = open(".shell_history", O_CREAT | O_WRONLY | O_APPEND, 0600);
+
+  // write command #
+  char num_str[100];
+  sprintf(num_str, "%d\t", num);
+  write(fd, num_str, strlen(num_str));
+
+  // write command
+  write(fd, str, strlen(str));
+  write(fd, "\n", strlen("\n"));
+
+  close(fd);
+}
+
+/************************************************
+SHOW_HISTORY: prints out history form .shell_history
+************************************************/
+void show_history() {
+  int fd = open(".shell_history", O_RDONLY);
+  // do not need to check if file does not exist b/c history command creates file anyways
+
+  struct stat buf;
+  stat(".shell_history", &buf);
+  int size = buf.st_size;
+
+  char contents[size];
+  read(fd, contents, size);
+  
+  printf("%s\n",  contents);
+
+}
 // finds if specified string is in a null-terminated  array of strings
 // returns pos if there; -1 if does not exist
 int find_str_in_array(char *arr[], char str[]) {
@@ -79,8 +130,7 @@ int find_str_in_array(char *arr[], char str[]) {
   }
   return -1;
 }
-    
-  
+   
 /******************************************
 SPLIT: splits input str on given delimiter
 * Input:
@@ -143,7 +193,8 @@ void printdir() {
 
 
 int main() {
-
+  int command_num = 0;
+  
   while ( 1 ) {
     //printf(">>> ");
     printdir();
@@ -151,6 +202,10 @@ int main() {
     fgets(input, sizeof(input), stdin);
     *strchr(input, '\n') = 0; //get rid of newline
 
+    // story history
+    store_history(input, command_num);
+    command_num++;
+    
     //list of commands separated by semicolons
     char **commands = (char **) malloc(1000);
     commands = split(input, ";");
