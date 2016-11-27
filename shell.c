@@ -87,8 +87,8 @@ void pipe_command(char *args[]) {
   char ** cmd2 = &(args[pipe_pos + 1]);  
   args[pipe_pos] = 0; // null terminate
 
-  char file_name[] = "dontNameAnythingThisPlease.tmp";
-  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);  
+  char file_name[] = ".pipe_file.tmp";
+  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0600);  
   int STDOUT_FILENO_DUP = dup(STDOUT_FILENO);
   int STDIN_FILENO_DUP = dup(STDIN_FILENO);
   
@@ -97,12 +97,13 @@ void pipe_command(char *args[]) {
   execute(args);
   dup2(STDOUT_FILENO_DUP, STDOUT_FILENO);
   
-  fd = open(file_name, O_RDONLY, 0644);  
+  fd = open(file_name, O_RDONLY);  
   dup2(fd, STDIN_FILENO); // redirect stdout to stdin
   close(fd);
   
   execute(cmd2);
   dup2(STDIN_FILENO_DUP, STDIN_FILENO);
+  unlink(file_name);
 }
 
 
