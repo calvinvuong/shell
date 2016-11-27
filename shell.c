@@ -24,7 +24,6 @@ void execute(char *args[]) {
   // regular command handling
   int f = fork();
   if ( f == 0 )  {
-    
     if ( find_str_in_array(args, ">") != -1 )
       redirect_out(args);
     else if ( find_str_in_array(args, "<") != -1 )
@@ -85,13 +84,25 @@ PIPE_COMMAND: handles command execution if there is a piping of output
 **************************************************************************/
 void pipe_command(char *args[]) {
   int pipe_pos = find_str_in_array(args, "|"); // positon of | in args
-  char ** cmd2 = &(args[pipe_pos + 1]);
-
+  char ** cmd2 = &(args[pipe_pos + 1]);  
   args[pipe_pos] = 0; // null terminate
-  execvp(args[0], args);
 
-  dup2(STDIN_FILENO, STDOUT_FILENO); // redirect stdout to stdin
-  execvp(cmd2[0], cmd2);
+  char file_name[] = "dontNameAnythingThisPlease.tmp";
+  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);  
+  int STDOUT_FILENO_DUP = dup(STDOUT_FILENO);
+  int STDIN_FILENO_DUP = dup(STDIN_FILENO);
+  
+  dup2(fd, STDOUT_FILENO); // redirect stdout to stdin
+  close(fd);
+  execute(args);
+  dup2(STDOUT_FILENO_DUP, STDOUT_FILENO);
+  
+  fd = open(file_name, O_RDONLY, 0644);  
+  dup2(fd, STDIN_FILENO); // redirect stdout to stdin
+  close(fd);
+  
+  execute(cmd2);
+  dup2(STDIN_FILENO_DUP, STDIN_FILENO);
 }
 
 
@@ -187,9 +198,25 @@ char * whitespaceBeGone( char * input ) {
       sprintf(newStr, "%s%c", newStr, input[i]);
     }
   }
-
   return newStr;
 }
+
+/************************************************
+comment later
+*************************************************/
+char * whitespaceBeHere( char * input) {
+  char * newStr = (char *) malloc(1000 * sizeof(char));
+  int i = 0;
+  for (; input[i] != '\0'; i++) {
+    if ( input[i] == '>' || input[i] == '<' || input[i] == '|' ){
+      sprintf(newStr, "%s%c%c%c", newStr, ' ', input[i], ' ');
+    } else {
+      sprintf(newStr, "%s%c", newStr, input[i]);
+    }
+  }
+  return newStr;
+}
+
 
 /**************************************************************************
 PRINTDIR: prints the current working directory as seen in the shell prompt
@@ -226,18 +253,21 @@ int main() {
  
     int i;
     for (i = 0; commands[i] != NULL; i++) { 
+      char * command_nonsplit_nonWhitespaceBeGoned = (char *) malloc(1000); 
       char * command_nonsplit = (char *) malloc(1000);
       char ** command = (char **) malloc(1000);
 
-      command_nonsplit = whitespaceBeGone( commands[i] );
+      command_nonsplit_nonWhitespaceBeGoned = whitespaceBeHere( commands[i] );
+      command_nonsplit = whitespaceBeGone( command_nonsplit_nonWhitespaceBeGoned );
       command = split(command_nonsplit, " ");
 
-      /*
+      /*      
 	printf("\tENTIRE CMD: (%s)\n", command_nonsplit);
 	printf("\tCOMMAND: (%s)\n", command[0]);
 	printf("\tARG 1: (%s)\n", command[1]);
 	printf("\tARG 2: (%s)\n", command[2]);
-      */      
+	printf("\tARG 3: (%s)\n", command[3]);
+      */
 
       /*
 	if( !strcmp(command[0], "exit") ) {
@@ -252,9 +282,10 @@ int main() {
       */
 
       execute(command);
-      
+      free(command_nonsplit_nonWhitespaceBeGoned);
       free(command_nonsplit);
       free(command);
+      command_nonsplit_nonWhitespaceBeGoned = NULL;
       command_nonsplit = NULL;
       command = NULL;
     }  
