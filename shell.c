@@ -1,4 +1,4 @@
-#include "shell.h"
+A#include "shell.h"
 
 /*******************************************
 EXECUTE: forks child to exec command, waits
@@ -289,6 +289,7 @@ int main() {
       command_nonsplit_nonWhitespaceBeGoned = NULL;
       command_nonsplit = NULL;
       command = NULL;
+      
     }  
 
     free(commands);
