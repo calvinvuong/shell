@@ -1,4 +1,4 @@
-A#include "shell.h"
+#include "shell.h"
 
 /*******************************************
 EXECUTE: forks child to exec command, waits
