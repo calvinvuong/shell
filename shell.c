@@ -93,6 +93,33 @@ PIPE_COMMAND: handles command execution if there is a piping of output
 * Input: args is an array of char pointers that represent commands
          the pipe character | is an element of args
 **************************************************************************/
+/*
+void pipe_command(char *args[]) {
+  char **= find_str_in_array(args, "|"); // positon of | in args
+  char ** cmd2 = &(args[pipe_pos + 1]);  
+  args[pipe_pos] = 0; // null terminate
+
+  char file_name[] = ".pipe_file.tmp";
+  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0600);  
+  int STDOUT_FILENO_DUP = dup(STDOUT_FILENO);
+  int STDIN_FILENO_DUP = dup(STDIN_FILENO);
+  
+  dup2(fd, STDOUT_FILENO); // redirect stdout to stdin
+  close(fd);
+  execute(args);
+  dup2(STDOUT_FILENO_DUP, STDOUT_FILENO);
+  
+  fd = open(file_name, O_RDONLY);  
+  dup2(fd, STDIN_FILENO); // redirect stdout to stdin
+  close(fd);
+
+  //if ( find_str_in_array(cmd2, "|") )
+    execute(cmd2);
+  dup2(STDIN_FILENO_DUP, STDIN_FILENO);
+  unlink(file_name);
+}
+*/
+// this works for 1 pipe
 void pipe_command(char *args[]) {
   int pipe_pos = find_str_in_array(args, "|"); // positon of | in args
   char ** cmd2 = &(args[pipe_pos + 1]);  
@@ -111,8 +138,9 @@ void pipe_command(char *args[]) {
   fd = open(file_name, O_RDONLY);  
   dup2(fd, STDIN_FILENO); // redirect stdout to stdin
   close(fd);
-  
-  execute(cmd2);
+
+  //if ( find_str_in_array(cmd2, "|") )
+    execute(cmd2);
   dup2(STDIN_FILENO_DUP, STDIN_FILENO);
   unlink(file_name);
 }
