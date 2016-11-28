@@ -10,7 +10,7 @@
 #define SHELL_H
 
 // executes command using execvp
-void execute(char *args[]);
+int execute(char *args[]);
 
 // executes command w/ redirection in
 void redirect_in(char *args[]);

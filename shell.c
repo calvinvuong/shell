@@ -6,35 +6,46 @@ EXECUTE: forks child to exec command, waits
     > args: array of char pointers
         > args[0] is command
         > args[1] and on are args
-	* Output: void
+	* Output: 1 if exit; 0 if not
 	********************************************/
-void execute(char *args[]) {
+int execute(char *args[]) {
   // custom command handling
   if( !strcmp(args[0], "exit") ) { 
     printf("Exiting shell...\n");
-    exit(0);
+    return 1;
+    //    exit(0);
   }
   else if ( !strcmp(args[0], "cd") ) {
     chdir(args[1]);
-    return;
+    return 0;
   }
-  else if ( !strcmp(args[0], "history") )
+  else if ( !strcmp(args[0], "history") ) {
     show_history();
+    return 0;
+  }
 
   // regular command handling
   int f = fork();
   if ( f == 0 )  {
-    if ( find_str_in_array(args, ">") != -1 )
+    if ( find_str_in_array(args, ">") != -1 ) {
       redirect_out(args);
-    else if ( find_str_in_array(args, "<") != -1 )
+      return 0;
+    }
+    else if ( find_str_in_array(args, "<") != -1 ) {
       redirect_in(args);
-    else if ( find_str_in_array(args, "|") != -1 )
+      return 0;
+    }
+    else if ( find_str_in_array(args, "|") != -1 ) {
       pipe_command(args);
+      return 0;
+    }
     else
       execvp(args[0], args);
   }
   else
     wait(&f);
+  
+  return 0;
 }
 
 /***************************************************************************
@@ -236,7 +247,7 @@ void printdir() {
 
 int main() {
   int command_num = 0;
-  
+  int status = 0;
   while ( 1 ) {
     //printf(">>> ");
     printdir();
@@ -249,18 +260,18 @@ int main() {
     command_num++;
     
     //list of commands separated by semicolons
-    char **commands = (char **) malloc(1000);
-    commands = split(input, ";");
- 
+    //char **commands = (char **) malloc(1000);
+    char ** commands = split(input, ";");
+    
     int i;
     for (i = 0; commands[i] != NULL; i++) { 
-      char * command_nonsplit_nonWhitespaceBeGoned = (char *) malloc(1000); 
-      char * command_nonsplit = (char *) malloc(1000);
-      char ** command = (char **) malloc(1000);
+      //char * command_nonsplit_nonWhitespaceBeGoned = (char *) malloc(1000); 
+      //char * command_nonsplit = (char *) malloc(1000);
+      //char ** command = (char **) malloc(1000);
 
-      command_nonsplit_nonWhitespaceBeGoned = whitespaceBeHere( commands[i] );
-      command_nonsplit = whitespaceBeGone( command_nonsplit_nonWhitespaceBeGoned );
-      command = split(command_nonsplit, " ");
+      char * command_nonsplit_nonWhitespaceBeGoned = whitespaceBeHere( commands[i] );
+      char * command_nonsplit = whitespaceBeGone( command_nonsplit_nonWhitespaceBeGoned );
+      char ** command = split(command_nonsplit, " ");
 
       /*      
 	printf("\tENTIRE CMD: (%s)\n", command_nonsplit);
@@ -282,18 +293,20 @@ int main() {
 	}
       */
 
-      execute(command);
+      status = execute(command);
       free(command_nonsplit_nonWhitespaceBeGoned);
       free(command_nonsplit);
       free(command);
-      command_nonsplit_nonWhitespaceBeGoned = NULL;
-      command_nonsplit = NULL;
-      command = NULL;
+      //command_nonsplit_nonWhitespaceBeGoned = NULL;
+      //command_nonsplit = NULL;
+      //command = NULL;
       
     }  
 
     free(commands);
-    commands = NULL;
+    //commands = NULL;
+    if ( status == 1 )
+      exit(0);
   }
 
   return 0;
