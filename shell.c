@@ -103,10 +103,14 @@ PIPE_COMMAND: handles command execution if there is a piping of output
          the pipe character | is an element of args
 **************************************************************************/
 void pipe_command(char *args[]) {
+  int i;
+  for ( i = 0; args[i] != NULL; i++ )
+    printf("%s, ", args[i]);
+  
   int pipe_pos = find_str_in_array(args, "|"); // positon of | in args
   char ** cmd2 = &(args[pipe_pos + 1]);  
   args[pipe_pos] = 0; // null terminate
-  
+
   char file_name[] = ".gt_cv_wx_pipe_file.tmp";
   int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0600);  
   int STDOUT_FILENO_DUP = dup(STDOUT_FILENO);
@@ -120,8 +124,7 @@ void pipe_command(char *args[]) {
   fd = open(file_name, O_RDONLY);  
   dup2(fd, STDIN_FILENO); // redirect stdout to stdin
   close(fd);
-
-  //if ( find_str_in_array(cmd2, "|") )
+  
   execute(cmd2);
   dup2(STDIN_FILENO_DUP, STDIN_FILENO);
   unlink(file_name);
