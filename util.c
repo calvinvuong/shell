@@ -36,7 +36,7 @@ char ** split(char * input, char * delimiter) {
 /*************************************************
 WHITESPACE-BEGONE: condenses whitespace in string
 * Input:
-    > input: string to condense
+    > input: string to condence
     * Output:
     > "array" of pointers to split strings 
 **************************************************/
