@@ -242,13 +242,17 @@ int main() {
       char * command_nonsplit = whitespaceBeGone( command_nonsplit_nonWhitespaceBeGoned );
       char ** command = split(command_nonsplit, " ");
 
-           
 	printf("\tENTIRE CMD: (%s)\n", command_nonsplit);
 	printf("\tCOMMAND: (%s)\n", command[0]);
 	printf("\tARG 1: (%s)\n", command[1]);
 	//printf("\tARG 2: (%s)\n", command[2]);
 	//printf("\tARG 3: (%s)\n", command[3]);
       
+	printf("\tENTIRE CMD: (%s)\n", command_nonsplit);
+	printf("\tCOMMAND: (%s)\n", command[0]);
+	printf("\tARG 1: (%s)\n", command[1]);
+	printf("\tARG 2: (%s)\n", command[2]);
+	printf("\tARG 3: (%s)\n", command[3]);
       
       status = execute(command);
       free(command_nonsplit_nonWhitespaceBeGoned);
