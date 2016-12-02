@@ -18,7 +18,7 @@ int execute(char *args[]) {
   }
   else if ( !strcmp(args[0], "cd") ) {
     chdir(args[1]);
-   return 0;
+    return 0;
   }
   else if ( !strcmp(args[0], "history") ) {
     show_history();
@@ -27,11 +27,13 @@ int execute(char *args[]) {
 
   // regular command handling
   int f = fork();
-  if ( f == 0 ) {
+  if ( f == 0 )  {
+
     if ( find_str_in_array(args, "<") != -1 || find_str_in_array(args, ">") != -1 ) {
       redirect(args);
       return 0;
-    }      
+    }
+      
     else if ( find_str_in_array(args, "|") != -1 ) {
       pipe_command(args);
       return 0;
@@ -41,7 +43,7 @@ int execute(char *args[]) {
   }
   else
     wait(&f);
-
+  
   return 0;
 }
 
@@ -102,16 +104,13 @@ PIPE_COMMAND: handles command execution if there is a piping of output
 * Input: args is an array of char pointers that represent commands
          the pipe character | is an element of args
 **************************************************************************/
+/*
 void pipe_command(char *args[]) {
-  int i;
-  for ( i = 0; args[i] != NULL; i++ )
-    printf("%s, ", args[i]);
-  
-  int pipe_pos = find_str_in_array(args, "|"); // positon of | in args
+  char **= find_str_in_array(args, "|"); // positon of | in args
   char ** cmd2 = &(args[pipe_pos + 1]);  
   args[pipe_pos] = 0; // null terminate
 
-  char file_name[] = ".gt_cv_wx_pipe_file.tmp";
+  char file_name[] = ".pipe_file.tmp";
   int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0600);  
   int STDOUT_FILENO_DUP = dup(STDOUT_FILENO);
   int STDIN_FILENO_DUP = dup(STDIN_FILENO);
@@ -124,7 +123,34 @@ void pipe_command(char *args[]) {
   fd = open(file_name, O_RDONLY);  
   dup2(fd, STDIN_FILENO); // redirect stdout to stdin
   close(fd);
+
+  //if ( find_str_in_array(cmd2, "|") )
+    execute(cmd2);
+  dup2(STDIN_FILENO_DUP, STDIN_FILENO);
+  unlink(file_name);
+}
+*/
+// this works for 1 pipe
+void pipe_command(char *args[]) {
+  int pipe_pos = find_str_in_array(args, "|"); // positon of | in args
+  char ** cmd2 = &(args[pipe_pos + 1]);  
+  args[pipe_pos] = 0; // null terminate
+
+  char file_name[] = ".pipe_file.tmp";
+  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0600);  
+  int STDOUT_FILENO_DUP = dup(STDOUT_FILENO);
+  int STDIN_FILENO_DUP = dup(STDIN_FILENO);
   
+  dup2(fd, STDOUT_FILENO); // redirect stdout to stdin
+  close(fd);
+  execute(args);
+  dup2(STDOUT_FILENO_DUP, STDOUT_FILENO);
+  
+  fd = open(file_name, O_RDONLY);  
+  dup2(fd, STDIN_FILENO); // redirect stdout to stdin
+  close(fd);
+
+  //if ( find_str_in_array(cmd2, "|") )
   execute(cmd2);
   dup2(STDIN_FILENO_DUP, STDIN_FILENO);
   unlink(file_name);
@@ -140,7 +166,7 @@ void store_history(char *str, int num) {
   char path[1000];
   sprintf(path, "%s/.custom_shell_history_gt_cv_wx", getenv("HOME"));
   int fd = open(path, O_CREAT | O_WRONLY | O_APPEND, 0644);
-  
+
   // write command #
   char num_str[100];
   sprintf(num_str, "%d\t", num);
@@ -211,7 +237,7 @@ int main() {
     char ** commands = split(input, ";");
     
     int i;
-    for (i = 0; commands[i] != NULL; i++) {
+    for (i = 0; commands[i] != NULL; i++) { 
       char * command_nonsplit_nonWhitespaceBeGoned = whitespaceBeHere( commands[i] );
       char * command_nonsplit = whitespaceBeGone( command_nonsplit_nonWhitespaceBeGoned );
       char ** command = split(command_nonsplit, " ");
@@ -240,14 +266,14 @@ int main() {
       free(command_nonsplit_nonWhitespaceBeGoned);
       free(command_nonsplit);
       free(command);
-      command_nonsplit_nonWhitespaceBeGoned = NULL;
-      command_nonsplit = NULL;
-      command = NULL;
+      //command_nonsplit_nonWhitespaceBeGoned = NULL;
+      //command_nonsplit = NULL;
+      //command = NULL;
       
     }  
 
     free(commands);
-    commands = NULL;
+    //commands = NULL;
     if ( status == 1 )
       exit(0);
   }
