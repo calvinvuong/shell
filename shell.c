@@ -63,7 +63,6 @@ void redirect_out(char *args[]) {
 
   args[arrow_pos] = 0; // null terminate
   execvp(args[0], args);
-  
 }
 
 /*************************************************************************
@@ -85,9 +84,10 @@ void redirect_in(char *args[]) {
   close(fd);
 
   args[arrow_pos] = 0; // null terminate
+  //execute(args);
   execvp(args[0], args);
 }
-
+  
 /*************************************************************************
 PIPE_COMMAND: handles command execution if there is a piping of output
 * Input: args is an array of char pointers that represent commands
@@ -140,7 +140,7 @@ void pipe_command(char *args[]) {
   close(fd);
 
   //if ( find_str_in_array(cmd2, "|") )
-    execute(cmd2);
+  execute(cmd2);
   dup2(STDIN_FILENO_DUP, STDIN_FILENO);
   unlink(file_name);
 }
@@ -293,10 +293,6 @@ int main() {
     
     int i;
     for (i = 0; commands[i] != NULL; i++) { 
-      //char * command_nonsplit_nonWhitespaceBeGoned = (char *) malloc(1000); 
-      //char * command_nonsplit = (char *) malloc(1000);
-      //char ** command = (char **) malloc(1000);
-
       char * command_nonsplit_nonWhitespaceBeGoned = whitespaceBeHere( commands[i] );
       char * command_nonsplit = whitespaceBeGone( command_nonsplit_nonWhitespaceBeGoned );
       char ** command = split(command_nonsplit, " ");
@@ -320,7 +316,7 @@ int main() {
 	execute(command);
 	}
       */
-
+      
       status = execute(command);
       free(command_nonsplit_nonWhitespaceBeGoned);
       free(command_nonsplit);
