@@ -242,38 +242,26 @@ int main() {
       char * command_nonsplit = whitespaceBeGone( command_nonsplit_nonWhitespaceBeGoned );
       char ** command = split(command_nonsplit, " ");
 
-      /*      
+           
 	printf("\tENTIRE CMD: (%s)\n", command_nonsplit);
 	printf("\tCOMMAND: (%s)\n", command[0]);
 	printf("\tARG 1: (%s)\n", command[1]);
-	printf("\tARG 2: (%s)\n", command[2]);
-	printf("\tARG 3: (%s)\n", command[3]);
-      */
-
-      /*
-	if( !strcmp(command[0], "exit") ) {
-	printf("Exiting shell...\n");
-	exit(0);
-
-	} else if ( !strcmp(command[0], "cd") ) {
-	chdir(command[1]);
-	} else {
-	execute(command);
-	}
-      */
+	//printf("\tARG 2: (%s)\n", command[2]);
+	//printf("\tARG 3: (%s)\n", command[3]);
+      
       
       status = execute(command);
       free(command_nonsplit_nonWhitespaceBeGoned);
       free(command_nonsplit);
       free(command);
-      //command_nonsplit_nonWhitespaceBeGoned = NULL;
-      //command_nonsplit = NULL;
-      //command = NULL;
+      command_nonsplit_nonWhitespaceBeGoned = NULL;
+      command_nonsplit = NULL;
+      command = NULL;
       
     }  
 
     free(commands);
-    //commands = NULL;
+    commands = NULL;
     if ( status == 1 )
       exit(0);
   }

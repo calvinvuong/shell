@@ -41,7 +41,7 @@ WHITESPACE-BEGONE: condenses whitespace in string
     > "array" of pointers to split strings 
 **************************************************/
 char * whitespaceBeGone( char * input ) {
-  char * newStr = (char *) malloc(1000 * sizeof(char));
+  char * newStr = (char *) calloc(1, 1000 * sizeof(char));
 
   int i = 0;
   for (; input[i] != '\0'; i++) {
@@ -57,7 +57,7 @@ char * whitespaceBeGone( char * input ) {
 comment later
 *************************************************/
 char * whitespaceBeHere( char * input) {
-  char * newStr = (char *) malloc(1000 * sizeof(char));
+  char * newStr = (char *) calloc(1, 1000 * sizeof(char));
   int i = 0;
   for (; input[i] != '\0'; i++) {
     if ( input[i] == '>' || input[i] == '<' || input[i] == '|' ){
