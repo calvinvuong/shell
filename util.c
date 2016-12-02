@@ -49,6 +49,7 @@ char * whitespaceBeGone( char * input ) {
       sprintf(newStr, "%s%c", newStr, input[i]);
     }
   }
+  input[i] = 0; // terminating null
   return newStr;
 }
 
@@ -65,5 +66,6 @@ char * whitespaceBeHere( char * input) {
       sprintf(newStr, "%s%c", newStr, input[i]);
     }
   }
+  input[i] = 0;
   return newStr;
 }
