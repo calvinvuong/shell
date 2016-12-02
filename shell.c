@@ -28,14 +28,12 @@ int execute(char *args[]) {
   // regular command handling
   int f = fork();
   if ( f == 0 )  {
-
     if ( find_str_in_array(args, "<") != -1 || find_str_in_array(args, ">") != -1 ) {
       redirect(args);
       return 0;
     }
-      
     else if ( find_str_in_array(args, "|") != -1 ) {
-      pipe_command(args);
+      pipe_command(args, 0);
       return 0;
     }
     else
@@ -94,15 +92,21 @@ void redirect(char *args[]) {
     else
       first_arrow = output_arrow;
   }
-
+  
   args[first_arrow] = 0; // null terminate
   execvp(args[0], args);
 }
-  
+
 /*************************************************************************
 PIPE_COMMAND: handles command execution if there is a piping of output
-* Input: args is an array of char pointers that represent commands
-         the pipe character | is an element of args
+              cannot handle commands that both pipe and redirect
+* Input: 
+   char *args[]: 
+     an array of char pointers that represent commands with the pipe character | as an element(s)
+   int option :
+     0 if the first command in args is the first command of the pipe string
+     1 if the first command in args is one of the middle commands of the pipe string
+     2 if the first command in args is the last command of the pipe string
 **************************************************************************/
 /*
 void pipe_command(char *args[]) {
@@ -130,8 +134,90 @@ void pipe_command(char *args[]) {
   unlink(file_name);
 }
 */
+
 // this works for 1 pipe
-void pipe_command(char *args[]) {
+void pipe_command(char *args[], int option) {
+  char file_name[] = ".pipe_output";
+  char tmp_file[] = ".pipe_output_tmp";
+  
+  if ( option == 2 ) {
+    int f = fork();
+    if ( f == 0 ) {
+      int fd = open(file_name, O_RDONLY);
+      dup2(fd, STDIN_FILENO);
+      close(fd);
+
+      execvp(args[0], args);
+    }
+    else
+      wait(&f);
+
+    // remove pipe output file
+    unlink(file_name);
+  }
+
+  else if ( option == 0 ) {
+    int pipe_pos = find_str_in_array(args, "|");
+    char ** cmd2 = &(args[pipe_pos+1]);
+    args[pipe_pos] = 0;
+    
+    int f = fork();
+    if ( f == 0 ) {
+      int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+      dup2(fd, STDOUT_FILENO);
+      close(fd);
+
+      execvp(args[0], args);
+    }
+    else
+      wait(&f);
+    
+    if ( find_str_in_array(cmd2, "|") != -1 ) // more pipes!
+      pipe_command(cmd2, 1);
+    else // no more pipes
+      pipe_command(cmd2, 2);
+  }
+
+  // DOES NOT WORK CORRECTLY
+  else if ( option == 1 ) {
+    int pipe_pos = find_str_in_array(args, "|");
+    char ** cmd2 = &(args[pipe_pos+1]);
+    args[pipe_pos] = 0;
+
+    int STDIN_FILENO_DUP = dup(STDIN_FILENO);
+    int STDOUT_FILENO_DUP = dup(STDOUT_FILENO);
+    
+    int f = fork();
+    if ( f == 0 ) {
+      
+      int fd1 = open(file_name, O_RDONLY);
+      int fd2 = open(tmp_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+      dup2(fd1, STDIN_FILENO);
+      dup2(fd2, STDOUT_FILENO);
+      close(fd1);
+      close(fd2);
+
+      int f2 = fork();
+      if ( f2 == 0 )
+	execvp(args[0], args);
+      else
+	wait(&f2);
+      rename(tmp_file, file_name);
+    }
+
+    if ( find_str_in_array(cmd2, "|") != -1 ) // more pipes!
+      pipe_command(cmd2, 1);
+    else
+      pipe_command(cmd2, 2);
+
+    dup2(STDIN_FILENO_DUP, STDIN_FILENO);
+    dup2(STDOUT_FILENO_DUP, STDOUT_FILENO);
+    close(STDIN_FILENO_DUP);
+    close(STDOUT_FILENO_DUP);
+  }
+}
+
+/*
   int pipe_pos = find_str_in_array(args, "|"); // positon of | in args
   char ** cmd2 = &(args[pipe_pos + 1]);  
   args[pipe_pos] = 0; // null terminate
@@ -155,7 +241,7 @@ void pipe_command(char *args[]) {
   dup2(STDIN_FILENO_DUP, STDIN_FILENO);
   unlink(file_name);
 }
-
+*/
 
 /************************************************************
 STORE_HISTORY: updates file ~/.custom_shell_history with str
@@ -232,23 +318,29 @@ int main() {
     store_history(input, command_num);
     command_num++;
     
-    //list of commands separated by semicolons
-    //char **commands = (char **) malloc(1000);
+    //array of commands separated by semicolons
     char ** commands = split(input, ";");
     
     int i;
-    for (i = 0; commands[i] != NULL; i++) { 
+    for (i = 0; commands[i] != NULL; i++) {
+      // handle whitespace problems
       char * command_nonsplit_nonWhitespaceBeGoned = whitespaceBeHere( commands[i] );
       char * command_nonsplit = whitespaceBeGone( command_nonsplit_nonWhitespaceBeGoned );
+      
+      // array of arguments separated by space
       char ** command = split(command_nonsplit, " ");
 
+      /*
 	printf("\tENTIRE CMD: (%s)\n", command_nonsplit);
 	printf("\tCOMMAND: (%s)\n", command[0]);
 	printf("\tARG 1: (%s)\n", command[1]);
-	//printf("\tARG 2: (%s)\n", command[2]);
-	//printf("\tARG 3: (%s)\n", command[3]);
+	printf("\tARG 2: (%s)\n", command[2]);
+	printf("\tARG 3: (%s)\n", command[3]);
+      */
       
       status = execute(command);
+
+      // free allocated memory
       free(command_nonsplit_nonWhitespaceBeGoned);
       free(command_nonsplit);
       free(command);
@@ -260,6 +352,7 @@ int main() {
 
     free(commands);
     commands = NULL;
+    // if exit command called
     if ( status == 1 )
       exit(0);
   }

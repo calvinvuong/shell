@@ -24,7 +24,8 @@ void redirect_out(char *args[]);
 void redirect(char *args[]);
 
 // executes command w/ piping out
-void pipe_command(char *args[]);
+void pipe_command(char *args[], int option);
+//void pipe_command(char *args[]);
 
 // updates .shell_history
 void store_history(char *str, int num);
