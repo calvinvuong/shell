@@ -140,7 +140,7 @@ void store_history(char *str, int num) {
   char path[1000];
   sprintf(path, "%s/.custom_shell_history_gt_cv_wx", getenv("HOME"));
   int fd = open(path, O_CREAT | O_WRONLY | O_APPEND, 0644);
-
+  
   // write command #
   char num_str[100];
   sprintf(num_str, "%d\t", num);
@@ -240,14 +240,14 @@ int main() {
       free(command_nonsplit_nonWhitespaceBeGoned);
       free(command_nonsplit);
       free(command);
-      //command_nonsplit_nonWhitespaceBeGoned = NULL;
-      //command_nonsplit = NULL;
-      //command = NULL;
+      command_nonsplit_nonWhitespaceBeGoned = NULL;
+      command_nonsplit = NULL;
+      command = NULL;
       
     }  
 
     free(commands);
-    //commands = NULL;
+    commands = NULL;
     if ( status == 1 )
       exit(0);
   }
