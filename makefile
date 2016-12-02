@@ -1,5 +1,7 @@
 make: shell.c
-	gcc shell.c -g -o shell.out
+	gcc -c -g util.c
+	gcc -c -g shell.c
+	gcc -g util.o shell.o -o shell.out
 
 run: make
 	./shell.out
