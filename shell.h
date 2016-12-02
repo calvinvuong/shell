@@ -18,6 +18,9 @@ void redirect_in(char *args[]);
 // executes command w/ redirection out
 void redirect_out(char *args[]);
 
+// executes command w/ any combination of redirections
+void redirect(char *args[]);
+
 // executes command w/ piping out
 void pipe_command(char *args[]);
 

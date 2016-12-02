@@ -27,14 +27,12 @@ int execute(char *args[]) {
   // regular command handling
   int f = fork();
   if ( f == 0 )  {
-    if ( find_str_in_array(args, ">") != -1 ) {
-      redirect_out(args);
+
+    if ( find_str_in_array(args, "<") != -1 || find_str_in_array(args, ">") != -1 ) {
+      redirect(args);
       return 0;
     }
-    else if ( find_str_in_array(args, "<") != -1 ) {
-      redirect_in(args);
-      return 0;
-    }
+      
     else if ( find_str_in_array(args, "|") != -1 ) {
       pipe_command(args);
       return 0;
@@ -49,42 +47,54 @@ int execute(char *args[]) {
 }
 
 /***************************************************************************
-REDIRECT_OUT: handles command execution if there is a redirection of output
+REDIRECT: handles command execution if there is a redirection of input/output
+          can handle multiple redirection symbols
 * Input: args is an array of char pointers that represent commands
-         the redirection character > is an element of args
+         the redirection character  is an element of args
+* Output: nothing returned; command is excuted
 ****************************************************************************/
-void redirect_out(char *args[]) {
-  int arrow_pos = find_str_in_array(args, ">"); // position of > in args
-  char *file_name = args[ arrow_pos + 1 ];
+void redirect(char *args[]) {
+  int output_arrow = find_str_in_array(args, ">");
+  int input_arrow = find_str_in_array(args, "<");
+  int first_arrow; // arrow in lowest index
+  char * output_file_name;
+  char * input_file_name;
+
+  if ( input_arrow != -1 ) {
+    input_file_name = args[input_arrow + 1];
+    int fd_input = open(input_file_name, O_RDONLY);
+    if ( fd_input == -1 ) { // file does not exist
+      printf("%s: No such file\n", input_file_name);
+      return;
+    }
+    dup2(fd_input, STDIN_FILENO); // redirect stdin to file_name
+    close(fd_input);
+  }
+  else {
+    input_file_name = NULL;
+    first_arrow = output_arrow;
+  }
   
-  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);  
-  dup2(fd, STDOUT_FILENO); // redirect stdout to file_name
-  close(fd);
-
-  args[arrow_pos] = 0; // null terminate
-  execvp(args[0], args);
-}
-
-/*************************************************************************
-REDIRECT_IN: handles command execution if there is a redirection of input
-* Input: args is an array of char pointers that represent commands
-         the redirection character < is an element of args
-**************************************************************************/
-void redirect_in(char *args[]) {
-  int arrow_pos = find_str_in_array(args, "<"); // positon of < in args
-  char *file_name = args[ arrow_pos + 1 ];
-
-  int fd = open(file_name, O_RDONLY);
-  if ( fd == -1 ) { // file does not exist
-    printf("%s: No such file\n", file_name);
-    return;
+  if ( output_arrow != -1 ) {
+    output_file_name = args[output_arrow + 1];
+    int fd_output = open(output_file_name, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+    dup2(fd_output, STDOUT_FILENO); // redirect stdout to file_name
+    close(fd_output);
+  }
+  else {
+    output_file_name = NULL;
+    first_arrow = input_arrow;
+  }
+  
+  // both arrows exist; find earliest arrow
+  if ( output_arrow > -1 && input_arrow > -1 ) {
+    if ( input_arrow < output_arrow )
+      first_arrow = input_arrow;
+    else
+      first_arrow = output_arrow;
   }
 
-  dup2(fd, STDIN_FILENO); // redirect stdin to file_name
-  close(fd);
-
-  args[arrow_pos] = 0; // null terminate
-  //execute(args);
+  args[first_arrow] = 0; // null terminate
   execvp(args[0], args);
 }
   
@@ -153,8 +163,8 @@ STORE_HISTORY: updates file ~/.custom_shell_history with str
 *************************************************************/
 void store_history(char *str, int num) {
   char path[1000];
-  sprintf(path, "%s/.custom_shell_history", getenv("HOME"));
-  int fd = open(path, O_CREAT | O_WRONLY | O_APPEND, 0600);
+  sprintf(path, "%s/.custom_shell_history_gt_cv_wx", getenv("HOME"));
+  int fd = open(path, O_CREAT | O_WRONLY | O_APPEND, 0644);
 
   // write command #
   char num_str[100];
@@ -276,6 +286,7 @@ void printdir() {
 int main() {
   int command_num = 0;
   int status = 0;
+  
   while ( 1 ) {
     //printf(">>> ");
     printdir();
