@@ -12,7 +12,7 @@ EXECUTE: forks child to exec command, waits
 int execute(char *args[]) {
   // custom command handling
   if( !strcmp(args[0], "exit") ) { 
-    printf("Exiting shell...\n");
+    printf(ANSI_COLOR_RED "Exiting shell...\n" ANSI_COLOR_RESET);
     return 1;
     //    exit(0);
   }
@@ -270,7 +270,7 @@ SHOW_HISTORY: prints out history form ~/.custom_shell_history
 **************************************************************/
 void show_history() {
   char path[1000];
-  sprintf(path, "%s/.custom_shell_history_gt_cv_wx", getenv("HOME"));
+  sprintf(path, "%s/.custom_shell_history_gt_cv_wx" , getenv("HOME"));
   int fd = open(path, O_RDONLY);
   // do not need to check if file does not exist b/c history command creates file anyways
 
@@ -282,7 +282,7 @@ void show_history() {
   read(fd, contents, size);
   contents[size] = 0; // null terminate
   
-  printf("%s\n",  contents);
+  printf(ANSI_COLOR_GREEN "%s\n" ANSI_COLOR_RESET,  contents);
 
 }
 
@@ -296,9 +296,9 @@ void printdir() {
   getcwd(dir, 1000);
 
   if ( strstr(dir, getenv("HOME")) == 0 ) // if cwd is above home dir
-    printf("%s$ ", dir);
+    printf(ANSI_COLOR_CYAN "%s$ " ANSI_COLOR_RESET, dir);
   else {
-    printf("~%s$ ", strstr(dir, getenv("HOME")) + strlen(getenv("HOME")));
+    printf(ANSI_COLOR_CYAN "~%s$ " ANSI_COLOR_RESET, strstr(dir, getenv("HOME")) + strlen(getenv("HOME")));
   }
 }
 
