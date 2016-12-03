@@ -1,14 +1,15 @@
 #include "util.h"
 #include "shell.h"
 
-/*******************************************
-EXECUTE: forks child to exec command, waits
-* Input:
-    > args: array of char pointers
-        > args[0] is command
-        > args[1] and on are args
-	* Output: 1 if exit; 0 if not
-	********************************************/
+/*======== int execute() ==========
+  Inputs:  char *args[]
+  Returns: 1 if executed successfully, 0 otherwise
+
+  char *args[]: array of command line argument strings
+	
+  Handles regular and custom (hardcoded) command cases
+  Intended to be called right after command is split by space
+  ==================================*/
 int execute(char *args[]) {
   // custom command handling
   if( !strcmp(args[0], "exit") ) { 
@@ -45,13 +46,19 @@ int execute(char *args[]) {
   return 0;
 }
 
-/***************************************************************************
-REDIRECT: handles command execution if there is a redirection of input/output
-          can handle multiple redirection symbols
-* Input: args is an array of char pointers that represent commands
-         the redirection character  is an element of args
-* Output: nothing returned; command is excuted
-****************************************************************************/
+/*======== void redirect() ==========
+  Inputs:  char *args[]
+  Returns: void
+
+  *args[]: array of command line argument strs, which contains ">" or "<"
+
+  helper for execute() when command contains
+  redirection characters
+
+  Handles regular command cases involving redirection
+  Can handle double redirection
+  Intended to be called when needed in execute()
+  ==================================*/
 void redirect(char *args[]) {
   int output_arrow = find_str_in_array(args, ">");
   int input_arrow = find_str_in_array(args, "<");
@@ -97,45 +104,19 @@ void redirect(char *args[]) {
   execvp(args[0], args);
 }
 
-/*************************************************************************
-PIPE_COMMAND: handles command execution if there is a piping of output
-              cannot handle commands that both pipe and redirect
-* Input: 
-   char *args[]: 
-     an array of char pointers that represent commands with the pipe character | as an element(s)
-   int option :
-     0 if the first command in args is the first command of the pipe string
-     1 if the first command in args is one of the middle commands of the pipe string
-     2 if the first command in args is the last command of the pipe string
-**************************************************************************/
-/*
-void pipe_command(char *args[]) {
-  char **= find_str_in_array(args, "|"); // positon of | in args
-  char ** cmd2 = &(args[pipe_pos + 1]);  
-  args[pipe_pos] = 0; // null terminate
+/*======== void pipe_command() ==========
+  Inputs:  int *args[], int option
+  Returns: void
 
-  char file_name[] = ".pipe_file.tmp";
-  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0600);  
-  int STDOUT_FILENO_DUP = dup(STDOUT_FILENO);
-  int STDIN_FILENO_DUP = dup(STDIN_FILENO);
-  
-  dup2(fd, STDOUT_FILENO); // redirect stdout to stdin
-  close(fd);
-  execute(args);
-  dup2(STDOUT_FILENO_DUP, STDOUT_FILENO);
-  
-  fd = open(file_name, O_RDONLY);  
-  dup2(fd, STDIN_FILENO); // redirect stdout to stdin
-  close(fd);
+  *args[]: array of command line argument strs, which contains "|"
+  option: 
+  0, if first cmd in args is the first cmd of pipe link
+  1, if first cmd in args is in the middle of pipe link
+  2, if first cmd in args is the last cmd of pipe link	
 
-  //if ( find_str_in_array(cmd2, "|") )
-    execute(cmd2);
-  dup2(STDIN_FILENO_DUP, STDIN_FILENO);
-  unlink(file_name);
-}
-*/
-
-// this works for 1 pipe
+  Handles command execution if involving piping
+  *** Do NOT use in conjunction with redirection
+  ==================================*/
 void pipe_command(char *args[], int option) {
   char file_name[] = ".pipe_output";
   char tmp_file[] = ".pipe_output_tmp";
@@ -178,7 +159,7 @@ void pipe_command(char *args[], int option) {
       pipe_command(cmd2, 2);
   }
 
-  // DOES NOT WORK CORRECTLY
+  // DOES NOT WORK CORRECTLY, but does not break code
   else if ( option == 1 ) {
     int pipe_pos = find_str_in_array(args, "|");
     char ** cmd2 = &(args[pipe_pos+1]);
@@ -217,37 +198,16 @@ void pipe_command(char *args[], int option) {
   }
 }
 
-/*
-  int pipe_pos = find_str_in_array(args, "|"); // positon of | in args
-  char ** cmd2 = &(args[pipe_pos + 1]);  
-  args[pipe_pos] = 0; // null terminate
+/*======== void store_history() ==========
+  Inputs:  char *str, int num
+  Returns: void
 
-  char file_name[] = ".pipe_file.tmp";
-  int fd = open(file_name, O_CREAT | O_TRUNC | O_WRONLY, 0600);  
-  int STDOUT_FILENO_DUP = dup(STDOUT_FILENO);
-  int STDIN_FILENO_DUP = dup(STDIN_FILENO);
-  
-  dup2(fd, STDOUT_FILENO); // redirect stdout to stdin
-  close(fd);
-  execute(args);
-  dup2(STDOUT_FILENO_DUP, STDOUT_FILENO);
-  
-  fd = open(file_name, O_RDONLY);  
-  dup2(fd, STDIN_FILENO); // redirect stdout to stdin
-  close(fd);
+  str: command to be stored
+  num: number entry of cmd (should be in chronorder)
 
-  //if ( find_str_in_array(cmd2, "|") )
-  execute(cmd2);
-  dup2(STDIN_FILENO_DUP, STDIN_FILENO);
-  unlink(file_name);
-}
-*/
-
-/************************************************************
-STORE_HISTORY: updates file ~/.custom_shell_history with str
-* Input: str is the command to be stored in history
-         num is the chronological command order
-*************************************************************/
+  updates ~/.custom_shell_history_gt_cv_wx file
+  that stores history of commands
+  ==================================*/
 void store_history(char *str, int num) {
   char path[1000];
   sprintf(path, "%s/.custom_shell_history_gt_cv_wx", getenv("HOME"));
@@ -265,9 +225,12 @@ void store_history(char *str, int num) {
   close(fd);
 }
 
-/*************************************************************
-SHOW_HISTORY: prints out history form ~/.custom_shell_history
-**************************************************************/
+/*======== void show_history() ==========
+  Inputs:  void
+  Returns: void
+
+  prints contents of ~/.custom_shell_history_gt_cv_wx to stdout
+  ==================================*/
 void show_history() {
   char path[1000];
   sprintf(path, "%s/.custom_shell_history_gt_cv_wx" , getenv("HOME"));
@@ -286,11 +249,13 @@ void show_history() {
 
 }
 
+/*======== void printdir() ==========
+  Inputs:  void
+  Returns: void
 
-
-/**************************************************************************
-PRINTDIR: prints the current working directory as seen in the shell prompt
-**************************************************************************/
+  prints contents of cwd, with the home address abbrievated with ~
+  (preceding before shell prompt)
+  ==================================*/
 void printdir() {
   char dir[1000];  
   getcwd(dir, 1000);
@@ -330,14 +295,6 @@ int main() {
       // array of arguments separated by space
       char ** command = split(command_nonsplit, " ");
 
-      /*
-	printf("\tENTIRE CMD: (%s)\n", command_nonsplit);
-	printf("\tCOMMAND: (%s)\n", command[0]);
-	printf("\tARG 1: (%s)\n", command[1]);
-	printf("\tARG 2: (%s)\n", command[2]);
-	printf("\tARG 3: (%s)\n", command[3]);
-      */
-      
       status = execute(command);
 
       // free allocated memory
