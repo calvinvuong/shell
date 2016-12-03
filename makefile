@@ -1,7 +1,5 @@
 make: shell.c
-	gcc -c -g util.c
-	gcc -c -g shell.c
-	gcc -g util.o shell.o -o shell.out
+	gcc util.c shell.c -o shell.out
 
 run: make
 	./shell.out
@@ -9,3 +7,4 @@ run: make
 clean:
 	rm -rf *~
 	rm -rf *.out
+	rm -rf *.o
