@@ -270,7 +270,7 @@ SHOW_HISTORY: prints out history form ~/.custom_shell_history
 **************************************************************/
 void show_history() {
   char path[1000];
-  sprintf(path, "%s/.custom_shell_history", getenv("HOME"));
+  sprintf(path, "%s/.custom_shell_history_gt_cv_wx", getenv("HOME"));
   int fd = open(path, O_RDONLY);
   // do not need to check if file does not exist b/c history command creates file anyways
 
