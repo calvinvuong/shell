@@ -5,26 +5,26 @@ by Giovanni Topalini, Calvin Vuong, and William Xiang
 * Forks and executes commands
 * Parses mutliple commands on one line separated by ;
 * Redirects using >, <
-..* Supports double redirection
+  * Supports double redirection
 * Pipes using |
-..* Does not support multiple piping
+  * Does not support multiple piping
 * Command history listing with: $ history
-..* Hidden history file to store used commands is created in the user home directory.
+  * Hidden history file to store used commands is created in the user home directory.
 * Prints working directory preceding prompt
 * Versatile whitespace parsing
-..* Any amount of whitespace (or absence of it) is OK!
+  * Any amount of whitespace (or absence of it) is OK!
 
 ## Attempted:
 * Multiple piping was attempted and almost successful, but problems occurred with the redirection and duplication of file descriptors that altered the behavior of multi-piping.
-..* Code was not commented out because it does not break the program, but may temporarily alter the prompter.
+  * Code was not commented out because it does not break the program, but may temporarily alter the prompter.
 
 ## Bugs:
 * Multiple pipe doesn't work work as intended
-..* A | B | C will end up doing A | C
-..* may temporarily alter directory prompt
-..* exit may require pressing enter
+  * A | B | C will end up doing A | C
+  * may temporarily alter directory prompt
+  * exit may require pressing enter
 * You may need to call exit more than once to exit the shell.
-..* This might not be a bug, since sometimes it takes multiple exit commands to exit bash, but we don't really know.
+  * This might not be a bug, since sometimes it takes multiple exit commands to exit bash, but we don't really know.
 * Redirection (<, >) cannot be used with pipes.
 
 ## Files & Function Headers:
